@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Timesheet</title>
+
+  <script type="text/javascript" src="js/libs/headjs/head.load.min.js"></script>
+
+  <script type="text/javascript">
+  head.load(
+    "css/libs/bootswatch/bootstrap.min.css",
+    "css/app.css"
+    );
+  </script>
+</head>
+<body>
+  <nav class="navbar navbar-default no_bottom_margin" role="navigation">
+    <a class="navbar-brand" href="#">Timesheet</a>
+  </nav>
+	<div class="container">
+	  <div id="contentContainer"></div>
+	</div>
+  <script type="text/javascript">
+    head.js(
+      "js/libs/jquery/jquery.min.js",
+      "js/libs/bootstrap/bootstrap.min.js"
+      );
+  </script>
+	<script type="text/javascript">
+	  head.js(
+	    "js/libs/underscore/underscore-min.js",
+	    "js/libs/backbone/backbone.js",
+	    "js/libs/marionette/backbone.marionette.min.js",
+	    "js/libs/civswig/swig.min.js",
+	    "js/libs/bootbox/bootbox.js",
+      "js/api.js",
+	    "js/app.js"
+	    );
+	</script>
+  
+<script type="text/swig" id="home_view">
+<div>
+  <h1>Projects</h1>
+  {% if projects.length == 0 %}
+  <p>
+  Start using Timesheet by creating a new project to add work to.
+  </p>
+  {% endif %}
+  <p>
+    <a class="btn btn-primary" href="#projects/create">Create New Project</a>
+  </p>
+  {% if projects.length > 0 %}
+  <table class="table">
+    <tr><th>Project Name</th><th>View</th><th>Actions<th></tr>
+    {% for project in projects %}
+    <tr>
+      <td>{{project.attributes.title}}</td>
+      <td><a class="btn btn-primary view" href="#projects/view/{{project.attributes._id}}">View</a></td>
+      <td>
+        <div class="btn-group">
+          <a href="#" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+            Actions
+            <span class="caret"></span>
+          </a>
+          <ul class="dropdown-menu">
+            <li><a href="#" class="edit" data-id="{{project.attributes._id}}">Edit</a></li>
+            <li><a href="#" class="archive" data-id="{{project.attributes._id}}">Archive</a></li>
+            <li class="divider"></li>
+            <li><a href="#" class="delete" data-id="{{project.attributes._id}}">Delete</a></li>
+           </ul>
+        </div>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+</div>
+	</script>
+<script type="text/swig" id="create_project_view">
+<div class="form form-horizontal">
+  <h1>Create Project</h1>
+
+  <div class="form-group">
+    <label for="textArea" class="col-lg-2 control-label">Title</label>
+    <div class="col-lg-10">
+      <input type="text" class="form-control" id="title">
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="textArea" class="col-lg-2 control-label">Contact Name</label>
+    <div class="col-lg-10">
+      <input type="text" class="form-control" id="contact_name">
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="textArea" class="col-lg-2 control-label">Rate</label>
+    <div class="col-lg-10">
+      <div class="input-group">
+        <span class="input-group-addon">$/h</span>
+        <input type="number" class="form-control" id="rate">
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="textArea" class="col-lg-2 control-label">Description</label>
+    <div class="col-lg-10">
+      <textarea class="form-control" id="description"></textarea>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-lg-10 col-lg-offset-2">
+      <div class="btn btn-primary create">Create</div>
+    </div>
+  </div>
+</div>
+	</script>
+<script type="text/swig" id="project_view">
+<div class="form form-horizontal">
+  <div class="row">
+    <div class="col-md-6">
+      <h1>Project {{project.attributes.title}}</h1>
+      <div class="well">
+        {{project.attributes.description}}
+      </div>
+      <h3>Work History</h3>
+      {% for work_item in work %}
+      <div class="work_item well well-sm">
+        Duration: {{(work_item.attributes.duration/1000)|formatTime}}<br/>
+        Worked on: {{work_item.attributes.worked_on}}
+      </div>
+      {% endfor %}
+    </div>
+    <div class="col-md-6">
+      <a class="btn btn-primary" href="#work/add/{{project.attributes._id}}">Add work</a>
+    </div>
+  </div>
+</div>
+	</script>
+<script type="text/swig" id="work_view">
+<div class="form form-horizontal">
+  {% if mode == 'add' %}
+  <h1>Add work</h1>
+  {% elseif mode == 'edit' %}
+  <h1>Edit work</h1>
+  {% endif %}
+
+  <div class="form-group">
+    <label for="textArea" class="col-lg-2 control-label">Start time</label>
+    <div class="col-lg-10">
+      <input type="time" class="form-control" id="start_time" value="{{ work.attributes.start_time }}">
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="textArea" class="col-lg-2 control-label">End time</label>
+    <div class="col-lg-10">
+      <input type="time" class="form-control" id="end_time" value="{{ work.attributes.end_time }}">
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="textArea" class="col-lg-2 control-label">Worked on</label>
+    <div class="col-lg-10">
+      <input type="text" class="form-control" id="worked_on" value="{{ work.attributes.worked_on }}">
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-lg-10 col-lg-offset-2">
+      {% if mode == 'add' %}
+      <div class="btn btn-primary add">Add</div>
+      {% elseif mode == 'edit' %}
+      <div class="btn btn-primary add">Edit</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+	</script>
+</body>
+</html>

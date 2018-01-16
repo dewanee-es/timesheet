@@ -1,9 +1,9 @@
 {
-  "name": "sheeeet",
+  "name": "timesheet",
   "version": "0.0.1",
-  "homepage": "https://github.com/benkaiser/sheeeet",
+  "homepage": "https://github.com/dewanee-es/timesheet",
   "authors": [
-    "Benjamin Kaiser <benjaminjkaiser@gmail.com>"
+    "Eteran <eteran5@gmail.com>"
   ],
   "description": "Timesheet management application",
   "main": "app.js",
@@ -11,7 +11,6 @@
   "private": true,
   "ignore": [
     "**/.*",
-    "node_modules",
     "bower_components",
     "test",
     "tests"
