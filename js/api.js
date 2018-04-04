@@ -1,4 +1,4 @@
-Api = {
+var Api = {
   loadData: function(){
     // fetch all data
     return new Promise(function(resolve, reject) {
@@ -86,3 +86,69 @@ Api = {
     });
   }
 };
+
+var Sheets = (function() {
+  var sheetApi;
+  var valueApi;
+
+  return {
+    start: function() {
+      sheetApi = gapi.client.sheets.spreadsheets;
+      valueApi = gapi.client.sheets.spreadsheets.values;
+    },
+    appendCells: function(sheetId, projects, day) {
+      sheetApi.batchUpdate({
+        auth: auth,
+        spreadsheetId: config.spreadsheetId,
+        resource: {requests: {appendCells: {
+          sheetId: sheetId,
+          rows: this.createValues(projects, day),
+          fields: 'userEnteredValue'
+        }}}
+      });
+    },
+    createValues: function(projects, day) {
+      var values = [];
+      values.push({userEnteredValue: {stringValue: day.date}});
+      for(var project in projects) {
+        var work = day[project.name];
+        if(project.simple) {
+          values.push({userEnteredValue: {numberValue: work.duration}});
+        } else {
+          values.push({userEnteredValue: {numberValue: work.start_time}});
+          values.push({userEnteredValue: {numberValue: work.end_time}});
+          if(project.break) {
+            values.push({userEnteredValue: {numberValue: work.start_time2}});
+            values.push({userEnteredValue: {numberValue: work.end_time2}});
+          }
+        }
+      }
+      return values;
+    },
+    createSheet: function(title) {
+      var result = sheetApi.batchUpdate({
+        auth: auth,
+        spreadsheetId: config.spreadsheetId,
+        resource: {requests: [{addSheet: {properties: {title: title}}}]}
+      });
+      return {id: result[0].replies.addSheet.properties.sheetId}; 
+    },
+    getRanges: function(ranges) {  // ["sheet!range", ...]
+      return valueApi.batchGet({
+        auth: auth,
+        spreadsheetId: config.spreadsheetId,
+        ranges: range,
+        valueRenderOption: 'UNFORMATTED_VALUE',
+        majorDimension: 'COLUMNS'
+      }).valueRanges; // [{range: "sheet|range", values: [[cellA1, cellA2, ...], [cellB1, cellB2, ...], ...]}, ...]
+    },
+    listSheets: function() {
+      var sheets = {};
+      var data = sheetApi.get({ auth: auth, spreadsheetId: config.spreadsheetId});
+      for(var s in data.sheets) {
+        sheets[s.properties.title] = {id: s.properties.sheetId};
+      }
+      return sheets;
+    }
+  }
+})();

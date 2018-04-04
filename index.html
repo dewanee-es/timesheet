@@ -39,7 +39,56 @@
 	    "js/app.js"
 	    );
 	</script>
+	<script type="text/javascript">
+	 var CLIENT_ID = '<YOUR_CLIENT_ID>';
+   var API_KEY = '<YOUR_API_KEY>';
+
+   var DISCOVERY_DOCS = ["https://sheets.googleapis.com/$discovery/rest?version=v4"];
+
+   var SCOPES = "https://www.googleapis.com/auth/spreadsheets";
+   
+   function handleClientLoad() {
+	   gapi.load('client:auth2', initClient);
+	 }
+   
+   function initClient() {
+     gapi.client.init({
+       apiKey: API_KEY,
+       clientId: CLIENT_ID,
+       discoveryDocs: DISCOVERY_DOCS,
+       scope: SCOPES
+     }).then(function () {
+       gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
+       updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
+       Sheets.start();
+     });
+   }
+   
+   function updateSigninStatus(isSignedIn) {
+     
+   }
+	</script>
+  <script async defer src="https://apis.google.com/js/api.js"
+      onload="this.onload=function(){};handleClientLoad()"
+      onreadystatechange="if (this.readyState === 'complete') this.onload()">
+  </script>
   
+<script type="text/swig" id="dashboard_view">
+<div>
+  <h1>Timesheet {{year}}</h1>
+  <table class="table">
+    <tr><th>Weekday</th><th>Date(s)</th><th>Hours<th></tr>
+    {% for day in timesheet %}
+    <tr>
+      <td></td>
+      <td><a class="edit" href="#timesheet/{{day.attributes.date}}">{{day.attributes.date}}</a></td>
+      <td>{{day.attributes.hours}}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+</div>
+</script>
 <script type="text/swig" id="home_view">
 <div>
   <h1>Projects</h1>
@@ -77,7 +126,7 @@
   </table>
   {% endif %}
 </div>
-	</script>
+</script>
 <script type="text/swig" id="create_project_view">
 <div class="form form-horizontal">
   <h1>Create Project</h1>
